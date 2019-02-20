@@ -119,3 +119,130 @@ class ClassifierKNN(Classifier):
         self.trainData = labeledSet
 
 # ---------------------------
+        
+class ClassifierPerceptronRandom(Classifier):
+    def __init__(self, input_dimension):
+        """ Argument:
+                - input_dimension (int) : dimension d'entrée des exemples
+            Hypothèse : input_dimension > 0
+        """  
+        v = np.random.rand(input_dimension)     # vecteur aléatoire à input_dimension dimensions
+        self.w = 2*v - 1
+        self.w = self.w / np.linalg.norm(self.w)     # on normalise par la norme de w
+        
+        
+        #v = np.random.rand(input_dimension)     # en effet, cette façon de caulculer n'est pas correcte
+        #self.w = (2* v - 1) / np.linalg.norm(v)  
+
+    def predict(self, x):
+        """ rend la prediction sur x (-1 ou +1)
+        """
+        z = np.dot(x, self.w)
+        return z
+        
+    def train(self,labeledSet):
+        """ Permet d'entrainer le modele sur l'ensemble donné
+        """        
+        print("No training needed")
+
+# ---------------------------
+
+class ClassifierPerceptron(Classifier):
+    """ Perceptron de Rosenblatt
+    """
+    def __init__(self,input_dimension,learning_rate):
+        """ Argument:
+                - intput_dimension (int) : dimension d'entrée des exemples
+                - learning_rate :
+            Hypothèse : input_dimension > 0
+        """
+        self.w = np.zeros(input_dimension)
+        self.e = learning_rate
+
+    def predict(self,x):
+        """ rend la prediction sur x (-1 ou +1)
+        """
+        return np.dot(x, self.w)
+
+    
+    def train(self,labeledSet):
+        """ Permet d'entrainer le modele sur l'ensemble donné
+        """
+        # parcours des données du labeledSet en ordre aléatoire
+        ordre = np.arange(labeledSet.size())
+        np.random.shuffle(ordre)
+        for i in ordre:
+            elem = labeledSet.getX(i)
+            z = self.predict(elem)
+            if z * labeledSet.getY(i) <= 0:
+                self.w += self.e * elem * labeledSet.getY(i)
+                # La normalisation de w a été choisie pour garantir
+                #que chaque modification de w est petite (de l'ordre de self.e) 
+                #par rapport à la valeur précédente de w.
+                self.w /= np.linalg.norm(self.w)
+        
+    def bad_train(self,labeledSet):
+        """ Entrainement sur l'ensemble donné sans normalisation de self.w (résultats mauvais)
+        """
+        # parcours des données du labeledSet en ordre aléatoire
+        ordre = np.arange(labeledSet.size())
+        np.random.shuffle(ordre)
+        for i in ordre:
+            elem = labeledSet.getX(i)
+            z = self.predict(elem)
+            if z * labeledSet.getY(i) <= 0:
+                self.w += self.e * elem * labeledSet.getY(i)
+                # ici on ne normalize pas. Cela cause des alterations très grandes de la
+                # valeur de l'accuracy comme bien demontré dans un cellule a suivre  
+
+# ---------------------------   
+    
+class ClassifierPerceptronKernel(Classifier):
+    def __init__(self,dimension_kernel,learning_rate,kernel):
+        """ Argument:
+                - intput_dimension (int) : dimension d'entrée des exemples
+                - learning_rate :
+            Hypothèse : input_dimension > 0
+        """
+        self.w = np.zeros(dimension_kernel)
+        self.e = learning_rate
+        self.k = kernel
+
+        
+    def predict(self,x):
+        """ rend la prediction sur x (-1 ou +1)
+        """
+        z = self.k.transform(x)
+        res = np.dot(z, self.w)
+        return res
+
+    
+    def train(self,labeledSet):
+        """ Permet d'entrainer le modele sur l'ensemble donné
+        """
+        ordre = np.arange(labeledSet.size())
+        np.random.shuffle(ordre)
+        for i in ordre:
+            elem = labeledSet.getX(i)
+            elem = self.k.transform(elem)
+            z = np.dot(elem, self.w)
+            if z * labeledSet.getY(i) <= 0:
+                self.w += self.e * elem * labeledSet.getY(i)
+                # La normalisation de w a été choisie pour garantir
+                #que chaque modification de w est petite (de l'ordre de self.e) 
+                #par rapport à la valeur précédente de w.
+                self.w /= np.linalg.norm(self.w)
+        
+        
+        
+    def train_bad(self,labeledSet):
+        """ Version sans normalisation de w 
+        """  
+        i = np.random.randint(labeledSet.size())
+        elem = labeledSet.getX(i)
+        elem = self.k.transform(elem)
+        z = np.dot(elem, self.w)
+        if z * labeledSet.getY(i) <= 0:
+            self.w = self.w + self.e *(elem * labeledSet.getY(i))
+
+        

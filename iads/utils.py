@@ -64,4 +64,51 @@ def createGaussianDataset(positive_center, positive_sigma, negative_center, nega
     
     return res
     
+def createXOR(nb_points,var):
+    set1 = createGaussianDataset(np.array([1,1]),np.array([[var,0],[0,var]]),np.array([1,-1]),np.array([[var,0],[0,var]]),nb_points)
+    set2 = createGaussianDataset(np.array([-1,-1]),np.array([[var,0],[0,var]]),np.array([-1,1]),np.array([[var,0],[0,var]]),nb_points)
+    taille = set2.size()
+    for i in range(taille):
+        set1.addExample(set2.getX(i), set2.getY(i))
+    return set1  
+
+# ------------------------ 
     
+class KernelBias:
+    def transform(self,x):
+        y=np.asarray([x[0],x[1],1])
+        return y
+
+
+class KernelPoly:
+    def transform(self,x):
+        y = np.asarray([1, x[0], x[1], x[0]*x[0], x[1]*x[1], x[0]*x[1]])
+        return y
+    
+    
+class KernelPolyMultiD:
+    def transform(self,x):
+        xi = x.reshape((x.size, 1))
+        xj = x.reshape((1, x.size))
+        mat = xi.dot(xj)
+        y = mat[np.triu_indices(x.size)]
+        y = np.concatenate((np.array([1]), x, y))
+        return y        
+    
+# ------------------------
+
+def split(l_set,  p_train = 0.85):
+    """
+    Sépare le LabeledSet l_set de façon aléatoire en deux LabeledSet, 
+    l'un pour l'entrainement et l'autre pour les tests. 
+    Le paramètre p_train donne la probabilité qu'une entrée de l_set soit mise dans le LabeledSet d'entrainement.
+    """
+    l_set_train = ls.LabeledSet(l_set.getInputDimension())
+    l_set_test = ls.LabeledSet(l_set.getInputDimension())
+    taille = l_set.size()
+    for i in range(taille):
+        if np.random.rand() < p_train:
+            l_set_train.addExample(l_set.getX(i), l_set.getY(i))
+        else:
+            l_set_test.addExample(l_set.getX(i), l_set.getY(i))
+    return l_set_train, l_set_test
