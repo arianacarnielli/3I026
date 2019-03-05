@@ -244,5 +244,194 @@ class ClassifierPerceptronKernel(Classifier):
         z = np.dot(elem, self.w)
         if z * labeledSet.getY(i) <= 0:
             self.w = self.w + self.e *(elem * labeledSet.getY(i))
+            
+# --------------------------- 
+            
+class ClassifierGradientSto(Classifier):
+    """ Descent du gradient stochastique
+    """
+    def __init__(self,input_dimension,learning_rate):
+        """ Argument:
+                - intput_dimension (int) : dimension d'entrée des exemples
+                - learning_rate :
+            Hypothèse : input_dimension > 0
+        """
+        self.e = learning_rate
+        #w initialisé de façon aléatoire
+        self.w = (np.random.rand(input_dimension) - 0.5) * self.e
+       
+
+    def predict(self,x):
+        """ rend la prediction sur x 
+        """
+        return np.dot(x, self.w)
+
+    
+    def train(self,labeledSet):
+        """ Permet d'entrainer le modele sur l'ensemble donné
+        """
+        # parcours des données du labeledSet en ordre aléatoire
+        ordre = np.arange(labeledSet.size())
+        np.random.shuffle(ordre)
+        for i in ordre:
+            elem = labeledSet.getX(i)
+            z = self.predict(elem)
+            #pas necessaire de tester, on change w toujours
+            self.w += self.e * (labeledSet.getY(i) - z) * elem 
+            
+    def loss(self, labeledSet):
+        """Calcul de la fonction de loss sur le dataset labeledSet.  
+        """
+        val_loss = 0
+        for i in range(labeledSet.size()):
+            elem = labeledSet.getX(i)
+            z = self.predict(elem)
+            val_loss += (labeledSet.getY(i) - z)**2
+        return val_loss/labeledSet.size()
+    
+# --------------------------- 
+        
+class ClassifierGradientBatch(Classifier):
+    """ Descent du gradient en batch
+    """
+    def __init__(self,input_dimension,learning_rate):
+        """ Argument:
+                - intput_dimension (int) : dimension d'entrée des exemples
+                - learning_rate :
+            Hypothèse : input_dimension > 0
+        """
+        self.e = learning_rate
+        #w initialisé de façon aléatoire
+        self.w = (np.random.rand(input_dimension) - 0.5) * self.e
+       
+
+    def predict(self,x):
+        """ rend la prediction sur x 
+        """
+        return np.dot(x, self.w)
+
+    
+    def train(self,labeledSet):
+        """ Permet d'entrainer le modele sur l'ensemble donné
+        """
+        # parcours des données du labeledSet
+        gradient = np.zeros(self.w.size)
+        for i in range(labeledSet.size()):
+            elem = labeledSet.getX(i)
+            z = self.predict(elem)
+            gradient += (labeledSet.getY(i) - z) * elem
+        self.w += self.e * gradient / labeledSet.size()
+        
+        
+    def loss(self, labeledSet):
+        """Calcul de la fonction de loss sur le dataset labeledSet. 
+        """
+        val_loss = 0
+        for i in range(labeledSet.size()):
+            elem = labeledSet.getX(i)
+            z = self.predict(elem)
+            val_loss += (labeledSet.getY(i) - z)**2
+        return val_loss/labeledSet.size()
+    
+# ---------------------------
+        
+class ClassifierGradientStoKernel(Classifier):
+    """ Descent du gradient stochastique kernelisé
+    """
+    def __init__(self,dimension_kernel,learning_rate,kernel):
+        """ Argument:
+                - dimension_kernel (int) : dimension du kernel
+                - learning_rate : e
+            Hypothèse : dimension_kernel > 0
+        """
+        self.e = learning_rate
+        #w initialisé de façon aléatoire
+        self.w = (np.random.rand(dimension_kernel) - 0.5) * self.e
+        self.k = kernel
+       
+
+    def predict(self,x):
+        """ rend la prediction sur x 
+        """
+        z = self.k.transform(x)
+        res = np.dot(z, self.w)
+        return res
+
+    
+    def train(self,labeledSet):
+        """ Permet d'entrainer le modele sur l'ensemble donné
+        """
+        # parcours des données du labeledSet en ordre aléatoire
+        ordre = np.arange(labeledSet.size())
+        np.random.shuffle(ordre)
+        for i in ordre:
+            elem = labeledSet.getX(i)
+            z = self.predict(elem)
+            elem = self.k.transform(elem)
+            #pas necessaire de tester, on change w toujours
+            self.w += self.e * (labeledSet.getY(i) - z) * elem 
+            
+            
+    def loss(self, labeledSet):
+        """Calcul de la fonction de loss sur le dataset labeledSet.
+        """
+        val_loss = 0
+        for i in range(labeledSet.size()):
+            elem = labeledSet.getX(i)
+            z = self.predict(elem)
+            val_loss += (labeledSet.getY(i) - z)**2
+        return val_loss/labeledSet.size()    
+    
+    
+# ---------------------------
+        
+class ClassifierGradientBatchKernel(Classifier):
+    """ Descent du gradient en batch kernelisé
+    """
+    def __init__(self,dimension_kernel,learning_rate,kernel):
+        """ Argument:
+                - dimension_kernel (int) : dimension du kernel
+                - learning_rate : e
+            Hypothèse : dimension_kernel > 0
+        """
+        self.e = learning_rate
+        #w initialisé de façon aléatoire
+        self.w = (np.random.rand(dimension_kernel) - 0.5) * self.e
+        self.k = kernel
+       
+
+    def predict(self,x):
+        """ rend la prediction sur x 
+        """
+        z = self.k.transform(x)
+        res = np.dot(z, self.w)
+        return res
+
+    
+    def train(self,labeledSet):
+        """ Permet d'entrainer le modele sur l'ensemble donné
+        """
+        # parcours des données du labeledSet
+        gradient = np.zeros(self.w.size)
+        for i in range(labeledSet.size()):
+            elem = labeledSet.getX(i)
+            z = self.predict(elem)
+            elem = self.k.transform(elem)
+            gradient += (labeledSet.getY(i) - z) * elem
+        self.w += self.e * gradient / labeledSet.size()
+        
+        
+    def loss(self, labeledSet):
+        """Calcul de la fonction de loss sur le dataset labeledSet.
+        """
+        val_loss = 0
+        for i in range(labeledSet.size()):
+            elem = labeledSet.getX(i)
+            z = self.predict(elem)
+            val_loss += (labeledSet.getY(i) - z)**2
+        return val_loss/labeledSet.size()
+    
+    
+# ---------------------------
 
         

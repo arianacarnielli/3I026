@@ -62,4 +62,14 @@ class LabeledSet:
         """ Renvoie la classe de du i-eme exemple (y_i)
         """
         return(self.y[i])
+        
+    def affiche_base(self):
+        """Affiche le conteu du LabeledSet base.
+        """
+        nb_lignes = self.size()
+        for i in range(nb_lignes):
+            print("Exemple " + str(i))
+            print("\tdescription :  {}".format(self.getX(i)))
+            print("\tlabel :  {}".format(self.getY(i)))
+    
 
