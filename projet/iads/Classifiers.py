@@ -9,6 +9,11 @@ Année: semestre 2 - 2018-2019, Sorbonne Université
 # Import de packages externes
 import numpy as np
 import pandas as pd
+import math
+import random
+import graphviz as gv
+
+import LabeledSet as ls
 
 # ---------------------------
 class Classifier:
@@ -433,5 +438,510 @@ class ClassifierGradientBatchKernel(Classifier):
     
     
 # ---------------------------
-
         
+# =============================================================================
+# Arbres de decision
+# =============================================================================
+
+def shannon(P):
+    if len(P) <= 1:
+        return 0.0
+    entropie = 0
+    taille = len(P)
+    for pi in P:
+        if pi != 0:
+            #print(pi)
+            entropie = entropie - (pi * math.log(pi, taille))
+    return entropie  
+
+def discretise2(LSet, col):
+    # Extraction de la colonne qui nous intéresse de x
+    # et transformation de y en un tableau 1D.
+    x = LSet.x[:, col]
+    y = LSet.y[:, 0]
+    
+    # Tri de x par valeurs croissantes et tri correspondant dans y.
+    ind = np.argsort(x)
+    x = x[ind]
+    y = y[ind]
+    
+    # Sélection des indices où y change entre -1 et 1
+    indices = np.where(y[:-1] != y[1:])[0]
+    
+    # Calcul des seuils correspondants
+    seuil = (x[indices] + x[indices+1])/2
+    
+    # Tableau pour garder l'entropie
+    entropie = np.zeros(seuil.size)
+    for i in range(seuil.size):
+        # Ici, on pourrait définir
+        # j = indices[i]
+        # séparer le tableau y entre y[:(j+1)] et y[(j+1):],
+        # calculer l'entropie des deux sous-tableaux et ensuite l'entropie
+        # moyenne. Cependant, cela ne marche pas dans un cas :
+        # si x[j] == x[j+1], alors ce seuil n'est pas un vrai seuil, on ne
+        # peut pas séparer x[j] de x[j+1] par une inégalité.
+        # Pour cela, on choisit de re-faire la séparation en comparant x à
+        # seuil[i]. On risque ainsi que l'un de nos tableaux soit vide,
+        # il faut en tenir compte.
+        s = seuil[i]
+        yGauche = y[x <= s]
+        yDroite = y[x > s]
+        
+        # Calcul de l'entropie du sous-tableau gauche. Vaut 0 si vide.
+        if yGauche.size == 0:
+            entGauche = 0.0
+        else:
+            p = (yGauche==1).sum()/yGauche.size
+            entGauche = shannon([p, 1 - p])
+            
+        # Calcul de l'entropie du sous-tableau droit. Vaut 0 si vide.
+        if yDroite.size == 0:
+            entDroite = 0.0
+        else:
+            p = (yDroite==1).sum()/yDroite.size
+            entDroite = shannon([p, 1 - p])
+            
+        entropie[i] = (entGauche*yGauche.size + entDroite*yDroite.size)/y.size
+        
+    # À la fin, on prend la valeur minimale de l'entropie.
+    imin = np.argmin(entropie)
+    return (seuil[imin], entropie[imin])
+
+def classe_majoritaire(LabeledSet):
+    nb_plus = (LabeledSet.y==1).sum()
+    nb_moins = (LabeledSet.y==-1).sum()
+    if nb_plus >= nb_moins:
+        return 1
+    return -1
+
+def entropie(LabeledSet):
+    dico_type = {}
+    taille_label = LabeledSet.size()
+    for y in range(taille_label):
+        type = LabeledSet.getY(y)
+        if type[0] in dico_type:
+            dico_type[type[0]] += 1
+        else:
+            dico_type[type[0]] = 1
+    P = []
+    for type in dico_type:
+        P.append(dico_type[type]/taille_label)
+    #print(P)
+    return shannon(P)
+
+
+def divise(LS, att, seuil):
+    Lb1 = ls.LabeledSet(LS.getInputDimension())
+    Lb2 = ls.LabeledSet(LS.getInputDimension())
+    
+    for i in range(LS.size()):
+        if LS.getX(i)[att] <= seuil:
+            Lb1.addExample(LS.getX(i), LS.getY(i))
+        else:
+            Lb2.addExample(LS.getX(i), LS.getY(i))
+        
+    return (Lb1, Lb2)
+
+def construit_AD(LSet, epsilon, level = 0, maxLevel = None):
+    """ LSet : LabeledSet
+        epsilon : seuil d'entropie pour le critère d'arrêt 
+    """
+    if (entropie(LSet) <= epsilon) or ((maxLevel is not None) and (level >= maxLevel)):
+        feuille = ArbreBinaire()
+        feuille.ajoute_feuille(classe_majoritaire(LSet))
+        return feuille
+    taille = LSet.getInputDimension()
+    entro = 1.1     
+    seuil = None
+    att = None
+    for col in range(taille): 
+        se_test, ent_test = discretise2(LSet, col)
+        if entro > ent_test:
+            att = col
+            entro = ent_test
+            seuil = se_test
+    if (entropie(LSet) - entro) <= epsilon:
+        feuille = ArbreBinaire()
+        feuille.ajoute_feuille(classe_majoritaire(LSet))
+        return feuille
+    noeud = ArbreBinaire()
+    LSGauche, LSDroite = divise(LSet, att, seuil)
+    ADGauche = construit_AD(LSGauche, epsilon, level = level + 1, maxLevel = maxLevel)
+    ADDroite = construit_AD(LSDroite, epsilon, level = level + 1, maxLevel = maxLevel)
+    noeud.ajoute_fils(ADGauche, ADDroite, att, seuil)
+    return noeud
+
+class ArbreBinaire:
+    def __init__(self):
+        self.attribut = None   # numéro de l'attribut
+        self.seuil = None
+        self.inferieur = None # ArbreBinaire Gauche (valeurs <= au seuil)
+        self.superieur = None # ArbreBinaire Gauche (valeurs > au seuil)
+        self.classe = None # Classe si c'est une feuille: -1 ou +1
+        
+    def est_feuille(self):
+        """ rend True si l'arbre est une feuille """
+        return self.seuil == None
+    
+    def ajoute_fils(self,ABinf,ABsup,att,seuil):
+        """ ABinf, ABsup: 2 arbres binaires
+            att: numéro d'attribut
+            seuil: valeur de seuil
+        """
+        self.attribut = att
+        self.seuil = seuil
+        self.inferieur = ABinf
+        self.superieur = ABsup
+    
+    def ajoute_feuille(self,classe):
+        """ classe: -1 ou + 1
+        """
+        self.classe = classe
+        
+    def classifie(self,exemple):
+        """ exemple : numpy.array
+            rend la classe de l'exemple: +1 ou -1
+        """
+        if self.est_feuille():
+            return self.classe
+        if exemple[self.attribut] <= self.seuil:
+            return self.inferieur.classifie(exemple)
+        return self.superieur.classifie(exemple)
+    
+    def to_graph(self, g, prefixe='A'):
+        """ construit une représentation de l'arbre pour pouvoir
+            l'afficher
+        """
+        if self.est_feuille():
+            g.node(prefixe,str(self.classe),shape='box')
+        else:
+            g.node(prefixe, str(self.attribut))
+            self.inferieur.to_graph(g,prefixe+"g")
+            self.superieur.to_graph(g,prefixe+"d")
+            g.edge(prefixe,prefixe+"g", '<='+ str(self.seuil))
+            g.edge(prefixe,prefixe+"d", '>'+ str(self.seuil))
+        
+        return g
+    
+    
+class ArbreDecision(Classifier):
+    # Constructeur
+    def __init__(self,epsilon, maxLevel = None):
+        # valeur seuil d'entropie pour arrêter la construction
+        self.epsilon= epsilon
+        self.racine = None
+        self.maxLevel = maxLevel
+    
+    # Permet de calculer la prediction sur x => renvoie un score
+    def predict(self,x):
+        # classification de l'exemple x avec l'arbre de décision
+        # on rend -1 (classe -1) ou 1 (classe 1)
+        classe = self.racine.classifie(x)
+        if (classe == 1):
+            return(1)
+        else:
+            return(-1)
+    
+    # Permet d'entrainer le modele sur un ensemble de données
+    def train(self,set):
+        # construction de l'arbre de décision 
+        self.set=set
+        self.racine = construit_AD(set,self.epsilon,maxLevel = self.maxLevel)
+
+    # Permet d'afficher l'arbre
+    def plot(self):
+        gtree = gv.Digraph(format='png')
+        return self.racine.to_graph(gtree)
+    
+def tirage(Vec_X, m, r):
+    if r == True:
+        res = []
+        for i in range(m):
+            res.append(random.choice(Vec_X))
+        return res
+    else:
+        return random.sample(Vec_X,m)  
+    
+def echantillonLS(LS_X, m, r):
+    index = tirage([i for i in range (LS_X.size())], m, r)
+    res = ls.LabeledSet(LS_X.getInputDimension())
+    for ind in index:
+        res.addExample(LS_X.getX(ind), LS_X.getY(ind))
+    return res
+
+class ClassifierBaggingTree(Classifier):
+    """Arguments:
+        - Le nombre B d'arbres à construire
+        - Le pourcentage d'exemples de la base d'apprentissage utilisés pour constituer un échantillon
+        - La valeur de seuil d'entropie pour arrêter la construction de chaque arbre
+        - Un booléen qui précise si un échantillon est tiré avec ou sans remise
+    """
+    def __init__(self, B, pourc, seuil, r, maxLevel = None):
+        self.nb_arbres = B
+        self.pourcent = pourc
+        self.seuil = seuil
+        self.remise = r
+        self.maxLevel = maxLevel
+    
+    def predict(self, x):
+        """rend la prediction sur x (-1 ou +1)
+        """
+        res = 0
+        for arbre in self.arbres:
+            res += arbre.predict(x)
+        if res >= 0:
+            return 1
+        return -1
+        
+    def train(self, labeledSet):
+        """ Permet d'entrainer le modele sur l'ensemble donné
+        """
+        self.arbres = set()
+        taille = int(labeledSet.size() * self.pourcent)
+        for i in range(self.nb_arbres):
+            temp_ls = echantillonLS(labeledSet, taille, self.remise)
+            temp_ad= ArbreDecision(self.seuil, maxLevel = self.maxLevel)
+            temp_ad.train(temp_ls)   
+            self.arbres.add(temp_ad)
+            
+            
+def subSetClasse(labeledSet):
+    """
+    Separe le LabeledSet pris en argument en deux, suivant les classes 1 et -1.
+    """
+    res_plus = ls.LabeledSet(labeledSet.getInputDimension())
+    res_moins = ls.LabeledSet(labeledSet.getInputDimension())
+    for i in range(labeledSet.size()):
+        if labeledSet.getY(i) == 1:
+            res_plus.addExample(labeledSet.getX(i), 1)
+        else:
+            res_moins.addExample(labeledSet.getX(i), -1)   
+    return res_plus, res_moins
+
+def subSetClasseAmeliore(labeledSet):
+    """
+    Separe le LabeledSet pris en argument en deux, suivant les classes 1 et -1.
+    Utilise des vues des tabelaux X et Y du labeledSet.
+    """
+    res_plus = ls.LabeledSet(labeledSet.getInputDimension())
+    res_moins = ls.LabeledSet(labeledSet.getInputDimension())
+    ind_plus = np.where(labeledSet.y == 1)[0]
+    ind_moins = np.where(labeledSet.y == -1)[0]
+    res_plus.x = labeledSet.x[ind_plus, :]
+    res_plus.y = labeledSet.y[ind_plus, :]
+    res_moins.x = labeledSet.x[ind_moins, :]
+    res_moins.y = labeledSet.y[ind_moins, :]
+    res_plus.nb_examples = ind_plus.size
+    res_moins.nb_examples = ind_moins.size
+    return res_plus, res_moins
+    
+def fusionSet(LS1, LS2):
+    """
+    Fusionne les deux LabeledSet LS1 et LS2.
+    Les deux doivent avoir le même InputDimension.    
+    """
+    res = ls.LabeledSet(LS1.getInputDimension())
+    for i in range(LS1.size()):
+        res.addExample(LS1.getX(i), LS1.getY(i)) 
+    for i in range(LS2.size()):
+        res.addExample(LS2.getX(i), LS2.getY(i))
+    return res
+
+def fusionSetAmeliore(LS1, LS2):
+    """
+    Fusionne les deux LabeledSet LS1 et LS2.
+    Les deux doivent avoir le même InputDimension.    
+    """
+    res = ls.LabeledSet(LS1.getInputDimension())
+    res.x = np.empty((LS1.size() + LS2.size(), LS1.getInputDimension()), dtype = LS1.x.dtype)
+    res.y = np.empty((LS1.size() + LS2.size(), 1), dtype = LS1.y.dtype)
+    res.nb_examples = res.x.shape[0]
+    res.x[:LS1.size(), :] = LS1.x
+    res.x[LS1.size():, :] = LS2.x
+    res.y[:LS1.size(), :] = LS1.y
+    res.y[LS1.size():, :] = LS2.y
+    return res
+
+def subSet(labeledSet, x, y):
+    """
+    Separe le LabeledSet passé en argument en deux :
+    - Le premier avec les données entre les indices x et y du LabeledSet original
+    - Le deuxième avec les autres données.
+    L'indice x est inclus et y est exclu.
+    """
+    res_xy = ls.LabeledSet(labeledSet.getInputDimension())
+    res = ls.LabeledSet(labeledSet.getInputDimension())
+    for i in range (labeledSet.size()):
+        if i >= x and i < y:
+            res_xy.addExample(labeledSet.getX(i), labeledSet.getY(i))
+        else:
+            res.addExample(labeledSet.getX(i), labeledSet.getY(i))
+    return res_xy, res
+
+def subSetAmeliore(labeledSet, x, y):
+    """
+    Separe le LabeledSet passé en argument en deux :
+    - Le premier avec les données entre les indices x et y du LabeledSet original
+    - Le deuxième avec les autres données.
+    L'indice x est inclus et y est exclu.
+    """
+    res_xy = ls.LabeledSet(labeledSet.getInputDimension())
+    res = ls.LabeledSet(labeledSet.getInputDimension())
+    res_xy.x = labeledSet.x[x:y, :]
+    res_xy.y = labeledSet.y[x:y, :]
+    res.x = np.concatenate((labeledSet.x[:x, :], labeledSet.x[y:, :]))
+    res.y = np.concatenate((labeledSet.y[:x, :], labeledSet.y[y:, :]))
+    res_xy.nb_examples = res_xy.x.shape[0]
+    res.nb_examples = res.x.shape[0]
+    return res_xy, res
+
+def echantillonDepuisIndices(LS_X, listIndices):
+    #index = tirage([i for i in range (LS_X.size())], m, r)
+    res = ls.LabeledSet(LS_X.getInputDimension())
+    for ind in listIndices:
+        res.addExample(LS_X.getX(ind), LS_X.getY(ind))
+    return res
+
+class ClassifierBaggingTreeOOB(ClassifierBaggingTree):
+    """Arguments:
+        - Le nombre B d'arbres à construire
+        - Le pourcentage d'exemples de la base d'apprentissage utilisés pour constituer un échantillon
+        - La valeur de seuil d'entropie pour arrêter la construction de chaque arbre
+        - Un booléen qui précise si un échantillon est tiré avec ou sans remise
+    """
+        
+    def train(self, labeledSet):
+        """ Permet d'entrainer le modele sur l'ensemble donné
+        """
+        self.arbres = dict()
+        
+        taille = int(labeledSet.size() * self.pourcent)
+        for i in range(self.nb_arbres):
+            index = tirage([i for i in range (labeledSet.size())], taille, self.remise)
+            temp_ls = echantillonDepuisIndices(labeledSet, index)
+            temp_ad = ArbreDecision(self.seuil, maxLevel = self.maxLevel)
+            temp_ad.train(temp_ls)   
+            self.arbres[temp_ad] = index
+            
+    def accuracyOOB(self, labeledSet):
+        """
+        Accuracy par la méthode OOB. Il faut que labeledSet soit le même utilisé dans train.
+        """
+        tBar = 0
+        for arbre in self.arbres:
+            index = self.arbres[arbre]
+            ti = 0
+            Ti = np.setdiff1d(np.arange(labeledSet.size()), index)
+            for i in Ti:
+                if self.predict(labeledSet.getX(i)) == labeledSet.getY(i):
+                    ti += 1
+            ti /= Ti.size
+            tBar += ti
+        tBar /= self.nb_arbres
+        return tBar*100
+        
+def construit_AD_aleatoire(LSet, epsilon, nbatt):
+    """ LSet : LabeledSet
+        epsilon : seuil d'entropie pour le critère d'arrêt 
+        nbatt : nombre d'attributs choisis à chaque niveau de la construction. Il faut que nbatt << LSet.getInputDimension().
+    """
+    if entropie(LSet) <= epsilon:
+        feuille = ArbreBinaire()
+        feuille.ajoute_feuille(classe_majoritaire(LSet))
+        return feuille
+    taille = LSet.getInputDimension()
+    entro = 1.1     
+    seuil = None
+    att = None
+    cols = tirage(range(taille), nbatt, False)
+    for col in cols: 
+        se_test, ent_test = discretise2(LSet, col)
+        if entro > ent_test:
+            att = col
+            entro = ent_test
+            seuil = se_test
+    if (entropie(LSet) - entro) <= epsilon:
+        feuille = ArbreBinaire()
+        feuille.ajoute_feuille(classe_majoritaire(LSet))
+        return feuille
+    noeud = ArbreBinaire()
+    LSGauche, LSDroite = divise(LSet, att, seuil)   
+    ADGauche = construit_AD_aleatoire(LSGauche, epsilon, nbatt)
+    ADDroite = construit_AD_aleatoire(LSDroite, epsilon, nbatt)
+    noeud.ajoute_fils(ADGauche, ADDroite, att, seuil)
+    return noeud
+
+
+class ArbreDecisionAleatoire(ArbreDecision):
+    # Constructeur
+    def __init__(self,epsilon,nbatt):
+        super(ArbreDecisionAleatoire, self).__init__(epsilon)
+        self.nbatt = nbatt
+    
+    # Permet d'entrainer le modele sur un ensemble de données
+    def train(self,set):
+        # construction de l'arbre de décision 
+        self.set=set
+        self.racine = construit_AD_aleatoire(set,self.epsilon, self.nbatt)
+        
+class ClassifierRandomForest(ClassifierBaggingTree):
+    """Arguments:
+        - Le nombre B d'arbres à construire
+        - Le pourcentage d'exemples de la base d'apprentissage utilisés pour constituer un échantillon
+        - La valeur de seuil d'entropie pour arrêter la construction de chaque arbre
+        - Un booléen qui précise si un échantillon est tiré avec ou sans remise
+        - Le nombre de colonnes nbatt à utiliser à chaque niveau de l'arbre.
+    """
+    def __init__(self, B, pourc, seuil, r, nbatt):
+        super(ClassifierRandomForest, self).__init__(B, pourc, seuil, r)
+        self.nbatt = nbatt
+    
+    def train(self, labeledSet):
+        """ Permet d'entrainer le modele sur l'ensemble donné
+        """
+        self.arbres = set()
+        taille = int(labeledSet.size() * self.pourcent)
+        for i in range(self.nb_arbres):
+            temp_ls = echantillonLS(labeledSet, taille, self.remise)
+            temp_ad= ArbreDecisionAleatoire(self.seuil, self.nbatt)
+            temp_ad.train(temp_ls)
+            self.arbres.add(temp_ad)
+            
+class ClassifierRandomForestOOB(ClassifierRandomForest):
+    """Arguments:
+        - Le nombre B d'arbres à construire
+        - Le pourcentage d'exemples de la base d'apprentissage utilisés pour constituer un échantillon
+        - La valeur de seuil d'entropie pour arrêter la construction de chaque arbre
+        - Un booléen qui précise si un échantillon est tiré avec ou sans remise
+        - Le nombre de colonnes nbatt à utiliser à chaque niveau de l'arbre.
+    """
+ 
+    def train(self, labeledSet):
+        """ Permet d'entrainer le modele sur l'ensemble donné
+        """
+        self.arbres = dict()
+        taille = int(labeledSet.size() * self.pourcent)
+        for i in range(self.nb_arbres):
+            index = tirage([i for i in range (labeledSet.size())], taille, self.remise)
+            temp_ls = echantillonDepuisIndices(labeledSet, index)
+            temp_ad= ArbreDecisionAleatoire(self.seuil, self.nbatt)
+            temp_ad.train(temp_ls)
+            self.arbres[temp_ad] = index
+            
+    def accuracyOOB(self, labeledSet):
+        """
+        Accuracy par la méthode OOB. Il faut que labeledSet soit le même utilisé dans train.
+        """
+        tBar = 0
+        for arbre in self.arbres:
+            index = self.arbres[arbre]
+            ti = 0
+            Ti = np.setdiff1d(np.arange(labeledSet.size()), index)
+            for i in Ti:
+                if self.predict(labeledSet.getX(i)) == labeledSet.getY(i):
+                    ti += 1
+            ti /= Ti.size
+            tBar += ti
+        tBar /= self.nb_arbres
+        return tBar*100
