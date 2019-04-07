@@ -13,7 +13,8 @@ import math
 import random
 import graphviz as gv
 
-import LabeledSet as ls
+# importation de LabeledSet
+from . import LabeledSet as ls
 
 # ---------------------------
 class Classifier:
@@ -236,9 +237,7 @@ class ClassifierPerceptronKernel(Classifier):
                 # La normalisation de w a été choisie pour garantir
                 #que chaque modification de w est petite (de l'ordre de self.e) 
                 #par rapport à la valeur précédente de w.
-                self.w /= np.linalg.norm(self.w)
-        
-        
+                self.w /= np.linalg.norm(self.w) 
         
     def train_bad(self,labeledSet):
         """ Version sans normalisation de w 
@@ -508,18 +507,18 @@ def discretise2(LSet, col):
     imin = np.argmin(entropie)
     return (seuil[imin], entropie[imin])
 
-def classe_majoritaire(LabeledSet):
-    nb_plus = (LabeledSet.y==1).sum()
-    nb_moins = (LabeledSet.y==-1).sum()
+def classe_majoritaire(labeledSet):
+    nb_plus = (labeledSet.y==1).sum()
+    nb_moins = (labeledSet.y==-1).sum()
     if nb_plus >= nb_moins:
         return 1
     return -1
 
-def entropie(LabeledSet):
+def entropie(labeledSet):
     dico_type = {}
-    taille_label = LabeledSet.size()
+    taille_label = labeledSet.size()
     for y in range(taille_label):
-        type = LabeledSet.getY(y)
+        type = labeledSet.getY(y)
         if type[0] in dico_type:
             dico_type[type[0]] += 1
         else:

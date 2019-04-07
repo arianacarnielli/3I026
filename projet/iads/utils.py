@@ -79,6 +79,10 @@ class KernelBias:
         y=np.asarray([x[0],x[1],1])
         return y
 
+class KernelBiasMultiD:
+    def transform(self, x):
+        return np.concatenate((np.array([1]), x))
+
 
 class KernelPoly:
     def transform(self,x):
