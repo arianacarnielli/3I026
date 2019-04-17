@@ -142,7 +142,7 @@ def inertie_globale(df_learn, dico_aff):
     return inertie
 # -------
 # ************************* Recopier ici la fonction kmoyennes()
-def kmoyennes(k, df_learn, epsilon, iter_max, verbose = False):
+def kmoyennes(k, df_learn, epsilon, iter_max, verbose = True):
     """ int * DataFrame * float * int -> tuple(DataFrame, dict[int,list[int]])
         K : entier > 1 (nombre de clusters)
         Base : DataFrame pour la base d'apprentissage
