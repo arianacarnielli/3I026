@@ -1,0 +1,458 @@
+%2345678901234567890123456789012345678901234567890123456789012345678901234567890
+%        1         2         3         4         5         6         7         8
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% <title>                                                                      %
+%                                                                              %
+% <author>                                                                     %
+%                                                                              %
+% 2019                                                                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PACKAGES                                                                     %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[10pt]{article}
+
+%------------------------------------------------------------------------------%
+% PAGE LAYOUT                                                                  %
+%------------------------------------------------------------------------------%
+\usepackage[a1paper, top=3cm, bottom=3cm, left=3cm, right=3cm]{geometry}
+\usepackage{multicol}
+%\usepackage{fancyhdr} % More control on header and footer
+
+%------------------------------------------------------------------------------%
+% TEXT FORMATTING                                                              %
+%------------------------------------------------------------------------------%
+%\usepackage{setspace} % Sets the space between lines
+%\usepackage{anyfontsize} % Fonts can be scaled to any size.
+
+%------------------------------------------------------------------------------%
+% IMAGES                                                                       %
+%------------------------------------------------------------------------------%
+\usepackage[pdftex]{graphicx}
+\pdfsuppresswarningpagegroup=1 % A warning issued when several PDF images are
+% imported in the same page. Mostly harmless, can be almost always supressed.
+\usepackage[pstarrows]{pict2e} % More commands for the picture environment
+\usepackage{tikz} % Best way of drawing pictures
+\usetikzlibrary{shapes, arrows, arrows.meta} % Some useful tikz libraries
+
+%------------------------------------------------------------------------------%
+% TABLES                                                                       %
+%------------------------------------------------------------------------------%
+\usepackage{array} % More options for table formatting
+%\usepackage{multirow} % Cells that occupy multiple rows
+%\usepackage{longtable} % Tables that occupy multiple pages
+\usepackage{booktabs}
+
+%------------------------------------------------------------------------------%
+% AMS PACKAGES                                                                 %
+%------------------------------------------------------------------------------%
+\usepackage{amsmath} % Basic AMS-LaTeX package, with most common features.
+                     % Automatically loads:
+										 %     amstext: for \text
+										 %     amsbsy: for \boldsymbol and \pmb
+										 %     amsopn: for \DeclareMathOperator
+										 % Automatically loaded on AMS document classes.
+%\usepackage{amsfonts} % Mathematical symbols, including \mathbb and \mathfrak.
+%\usepackage{amscd} % Package for commutative diagrams
+\usepackage{amsthm} % Extended functionalities for \newtheorem.
+                   % Automatically loaded on AMS document classes.
+\usepackage{amssymb} % Extended mathematical symbols.
+                     % May exceed LaTeX symbol capacity.
+                     % Automatically loads:
+										 %     amsfonts
+
+%------------------------------------------------------------------------------%
+% MATHEMATICAL SYMBOLS                                                         %
+%------------------------------------------------------------------------------%
+\usepackage{mathtools} % More symbols (eg. \xrightharpoon, \coloneqq)
+\usepackage[integrals]{wasysym} % Changes the style of the integrals
+\usepackage[nice]{nicefrac} % Better fractions
+\usepackage{stmaryrd} % Symbols (eg. \llbracket and \rrbracket for intervals of
+%                       integers)
+
+%------------------------------------------------------------------------------%
+% MATHEMATICAL FONTS                                                           %
+%------------------------------------------------------------------------------%
+%\usepackage{mathbbol} % Almost every symbol with \mathbb
+\usepackage{bbm} % More symbols with \mathbb. Use \mathbbm
+%\usepackage{calrsfs} % Changes the style of \mathcal
+\usepackage[mathcal]{euscript} % Changes the style of \mathcal
+
+%------------------------------------------------------------------------------%
+% FONT ENCODING                                                                %
+%------------------------------------------------------------------------------%
+\usepackage[utf8]{inputenc} % Encoding of the .tex file.
+\usepackage[T1]{fontenc} % T1 fonts, necessary to treat accentuated characters
+%                          as a single block.
+
+%------------------------------------------------------------------------------%
+% LANGUAGES                                                                    %
+%------------------------------------------------------------------------------%
+\usepackage[french]{babel} % Selects the language of the
+%                              document, defining the names of the sections,
+%                              table of contents, bibliography, etc. The default
+%                              language for a multi-language document is the
+%                              last one.
+%\frenchsetup{StandardLists=true} % Necessary when writing documents in French
+%                                    with the package enumitem to avoid
+%                                    conflicts with the environment itemize
+%\NoAutoSpaceBeforeFDP % Suppresses the automatic space before :;?!
+
+%------------------------------------------------------------------------------%
+% BIBLIOGRAPHY                                                                 %
+%------------------------------------------------------------------------------%
+%\usepackage{babelbib} % Used to define the language of each bibliography entry.
+%                       Use [fixlanguage] to use the same language for every
+%                       entry and \selectbiblanguage{} to define it. An adapted
+%                       style must be used (such as babplain).
+\usepackage{cite} % Organizes the entries inside a single \cite.
+
+%------------------------------------------------------------------------------%
+% FONTS                                                                        %
+%------------------------------------------------------------------------------%
+% Computer Modern (default font)                                               %
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -%
+% \usepackage{ae} % To be used with Computer Modern when generating PDFs to
+%                  correct some errors.
+
+% Computer Modern Bright (sans serif)                                          %
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -%
+%\usepackage{cmbright}
+
+% Times New Roman                                                              %
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -%
+%\usepackage{mathptmx} % Text and math mode
+%\usepackage{times} % Only text, doesn't change math mode
+%\usepackage{newtxtext, newtxmath} % Contains bold greek letters
+
+% Arial                                                                        %
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -%
+%\usepackage[scaled]{uarial} % Arial as the default sans serif font
+
+% Palatino                                                                     %
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -%
+%\usepackage{mathpazo} % Text and math mode
+%\usepackage{palatino} % Only text, doesn't change math mode
+
+% Concrete                                                                     %
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -%
+%\usepackage{ccfonts} % Text: Concrete; Math mode: Concrete Math
+%\usepackage{ccfonts, eulervm} % Text: Concrete; Math mode: Euler
+
+% Iwona                                                                        %
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -%
+%\usepackage[math]{iwona} % Text and math mode: Iwona
+
+% Kurier                                                                       %
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -%
+%\usepackage[math]{kurier} % Texto and math mode: Kurier
+
+% Antykwa Póltawskiego                                                         %
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -%
+%\usepackage{antpolt} % Text: Antykwa Póltawskiego; Math mode: none
+                     % Use fontenc = QX or OT4
+
+% Utopia                                                                       %
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -%
+%\usepackage{fourier} % Text: Utopia; Math mode: Fourier
+
+% KP Serif                                                                     %
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -%
+%\usepackage{kpfonts}
+
+% Fira Sans                                                                    %
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -%
+\usepackage[sfdefault, scaled=0.95]{FiraSans}
+\usepackage{newtxsf}
+
+%------------------------------------------------------------------------------%
+% OTHER PACKAGES                                                               %
+%------------------------------------------------------------------------------%
+%\usepackage[section]{algorithm} % To typeset algorithms
+%\usepackage{appendix} % Creates subappendices (appendice sections in the end
+%                        of a chapter).
+\usepackage{calc} % Computations with lengths and counters.
+\usepackage[inline]{enumitem} % Better lists, including references to items of
+%                               lists
+%\usepackage{icomma} % Uses comma as the decimal separator
+%\usepackage{lipsum} % Lorem ipsum text
+%\usepackage{pdflscape} % Landscape pages
+%\usepackage{pdfpages} % Allows the inclusion of PDF files
+%\usepackage{randtext} % Permutes the letters of a sentence stored on the PDF
+                       % file (useful for e-mail addresses in documents to be
+					   % made available on-line).
+%\usepackage{refcheck} % Checks the references looking for unused labels
+%                      % Look for RefCheck in the .log file.
+\usepackage[notref]{showkeys} % Shows the names of the labels
+\renewcommand*\showkeyslabelformat[1]{\normalfont\tiny\ttfamily#1}
+% Format for showing label names
+\usepackage{url} % Use \url{} to declare a URL
+%\usepackage{xcolor} % Automatically loaded by tikz.
+\usepackage{tcolorbox}
+
+%------------------------------------------------------------------------------%
+% HYPERLINKS                                                                   %
+%------------------------------------------------------------------------------%
+\usepackage[linktocpage, colorlinks, citecolor=blue, urlcolor=violet, bookmarks, bookmarksnumbered, pdfstartview={XYZ null null 1.00}]{hyperref}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CONFIGURATIONS                                                               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%------------------------------------------------------------------------------%
+% TEXT FORMATTING                                                              %
+%------------------------------------------------------------------------------%
+%\onehalfspacing % 1 1/2 spacing (defined in the package setspace)
+
+%------------------------------------------------------------------------------%
+% DEFINITION OF MATH ENVIRONMENTS                                              %
+%------------------------------------------------------------------------------%
+\iflanguage{french}{
+  \newcommand{\theoname}{Théorème}
+  \newcommand{\lemmname}{Lemme}
+  \newcommand{\coroname}{Corolaire}
+  \newcommand{\propname}{Proposition}
+  \newcommand{\definame}{Définition}
+  \newcommand{\hyponame}{Hypothèses}
+  \newcommand{\remkname}{Remarque}
+  \newcommand{\explname}{Exemple}
+  \newcommand{\soluname}{Solution}
+}{
+\iflanguage{portuguese}{
+  \newcommand{\theoname}{Teorema}
+  \newcommand{\lemmname}{Lema}
+  \newcommand{\coroname}{Corolário}
+  \newcommand{\propname}{Proposição}
+  \newcommand{\definame}{Definição}
+  \newcommand{\hyponame}{Hipóteses}
+  \newcommand{\remkname}{Observação}
+  \newcommand{\explname}{Exemplo}
+  \newcommand{\soluname}{Solução}
+}{ % Default: english
+  \newcommand{\theoname}{Theorem}
+  \newcommand{\lemmname}{Lemma}
+  \newcommand{\coroname}{Corollary}
+  \newcommand{\propname}{Proposition}
+  \newcommand{\definame}{Definition}
+  \newcommand{\hyponame}{Hypotheses}
+  \newcommand{\remkname}{Remark}
+  \newcommand{\explname}{Example}
+  \newcommand{\soluname}{Solution}
+}}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{\theoname}[section]
+\newtheorem{lemma}[theorem]{\lemmname}
+\newtheorem{corollary}[theorem]{\coroname}
+\newtheorem{proposition}[theorem]{\propname}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{\definame}
+\newtheorem{hypothesis}[theorem]{\hyponame}
+\newtheorem{remark}[theorem]{\remkname}
+\newtheorem{example}[theorem]{\explname}
+
+%------------------------------------------------------------------------------%
+% DEFINITION OF MATH OPERATORS                                                 %
+%------------------------------------------------------------------------------%
+\DeclareMathOperator{\Lip}{Lip} % Lipschitz continuous functions
+\DeclareMathOperator{\sign}{sign} % Signal
+\DeclareMathOperator{\diam}{diam} % Diameter
+\DeclareMathOperator{\Ker}{Ker} % Kernel
+\DeclareMathOperator{\Real}{Re} % Real part
+%\DeclareMathOperator{\Tr}{Tr} % Trace
+%\DeclareMathOperator{\spr}{\rho} % Spectral radius
+\DeclareMathOperator{\conv}{co} % Convex hull
+\DeclareMathOperator{\diverg}{div} % Divergence
+\DeclareMathOperator{\rank}{rk} % Rank
+\DeclareMathOperator{\range}{Ran} % Range
+\DeclareMathOperator{\diag}{diag} % Diagonal matrix
+\DeclareMathOperator{\id}{Id} % Identity matrix
+\DeclareMathOperator{\meas}{meas} % Measure
+\DeclareMathOperator{\Span}{Span} % Vector span
+\DeclareMathOperator{\Vol}{Vol} % Volume
+\DeclareMathOperator{\supp}{supp} % Support
+\DeclareMathOperator{\Proj}{Pr} % Projection
+\DeclareMathOperator*{\esssup}{ess\,sup} % Essential supremum
+\DeclareMathOperator{\diff}{d\!} % Differential
+\DeclareMathOperator{\transp}{T} % Transpose
+
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert} % Norm
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert} % Absolute value
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor} % Floor
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil} % Ceiling
+\DeclarePairedDelimiter{\pfrac}{\{}{\}} % Fractionary part
+\DeclarePairedDelimiter{\average}{\langle}{\rangle} % Average
+\DeclarePairedDelimiter{\scalprod}{\langle}{\rangle} % Scalar product
+
+%\newcommand{\ind}{\mathbbmss 1} % Indicator. Uses the package bbm
+\newcommand{\suchthat}{\ifnum\currentgrouptype=16 \mathrel{}\middle|\mathrel{}\else\mid\fi}
+
+\newcommand{\bracket}[2]{\left\langle#1\middle|#2\right\rangle} % Bracket
+
+%------------------------------------------------------------------------------%
+% FLOATS                                                                       %
+%------------------------------------------------------------------------------%
+% Maximal percentage of the page occupied by floats
+\renewcommand\floatpagefraction{.9}
+\renewcommand\topfraction{.9}
+\renewcommand\bottomfraction{.9}
+\renewcommand\textfraction{.1}
+% Maximal number of floats per page
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+
+%------------------------------------------------------------------------------%
+% DOCUMENT STRUCTURE                                                           %
+%------------------------------------------------------------------------------%
+\setcounter{secnumdepth}{6} % Part, chapter, section, subsection, subsubsection
+%                             and paragraph have numbers.
+\setcounter{tocdepth}{6} % Part, chapter, section, subsection, subsubsection and
+%                          paragraph in the table of contents.
+
+%------------------------------------------------------------------------------%
+% NUMBERS OF FIGURES, TABLES AND EQUATIONS                                     %
+%------------------------------------------------------------------------------%
+\numberwithin{table}{section}
+%\numberwithin{table}{subsection}
+\numberwithin{figure}{section}
+%\numberwithin{figure}{subsection}
+\numberwithin{equation}{section}
+%\numberwithin{equation}{subsection}
+%\numberwithin{theo}{chapter}
+%\numberwithin{theo}{subsection}
+
+\pagestyle{empty}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% DOCUMENT                                                                   %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+%------------------------------------------------------------------------------%
+% DOCUMENT COMMANDS                                                            %
+%------------------------------------------------------------------------------%
+
+% Configure some enumitem styles
+\setlist[enumerate, 1]{label={\textnormal{(\alph*)}}, ref={(\alph*)}, leftmargin=0pt, itemindent=*}
+\setlist[enumerate, 2]{label={\textnormal{(\roman*)}}, ref={(\roman*)}}
+\setlist[description, 1]{leftmargin=0pt, itemindent=*}
+\setlist[itemize, 1]{label={\textbullet}, leftmargin=0pt, itemindent=*}
+
+\begin{center}
+\resizebox{0.99\textwidth}{!}{
+\begin{minipage}{21cm}
+
+\begin{center}
+\begin{tcolorbox}[colback=red!10, colframe=red!75!black]
+\centering 
+\huge 3I026 --- Projet
+
+\Huge Analyse de données de films
+
+\Large Ariana CARNIELLI
+\end{tcolorbox}
+\end{center}
+
+\begin{multicols}{3}
+\begin{tcolorbox}[colback=blue!10, colframe=blue!75!black]
+\centering\Large
+Introduction
+\end{tcolorbox}
+
+Ce projet s'intéresse à l'analyse de données décrivant des films obtenues à partir des bases de données des sites MovieLens et TMDb. On s'intéresse
+\begin{itemize}
+\item à la régression supervisée de la note des films sur MovieLens à partir des notes d'acteurs et directeurs ;
+\item à la classification supervisée en genres ;
+\item à la catégorisation non-supervisée de films d'un même acteur.
+\end{itemize}
+
+\bigskip
+
+\begin{tcolorbox}[colback=blue!10, colframe=blue!75!black]
+\centering\Large
+Bases de données
+\end{tcolorbox}
+
+Les bases de données MovieLens et TMDb disponibles contiennent plusieurs informations, desquelles on a extrait, pour chaque film, ses genres, les notes obtenues sur MovieLens et TMDb et le nombre d'utilisateurs de ces sites ayant voté, la langue du film et le nombre d'acteurs et de membres de l'équipe de production séparés par chaque département. On a aussi récupéré depuis le site de TMDb les budgets et revenus des films, des données qui ne sont disponibles pour tous les films et qui n'ont donc pas été utilisées pour tous les tests.
+
+\bigskip
+
+\begin{tcolorbox}[colback=blue!10, colframe=blue!75!black]
+\centering\Large
+Régression des notes
+\end{tcolorbox}
+
+On a estimé la note d'un film à partir des informations disponibles. En particulier, on a cherché à donner une note moyenne pour chaque acteur et directeur pour les films entre 1988 et 2007 et prédire la note des films de 2008 à partir des notes des acteurs et directeurs qui y figurent. Les erreur entre la prédiction et la note réelle sont données dans les histogrammes ci-dessus.
+
+\includegraphics[width=\columnwidth]{regressionApprent}
+
+\columnbreak
+
+\begin{tcolorbox}[colback=blue!10, colframe=blue!75!black]
+\centering\Large
+Classification selon des genres
+\end{tcolorbox}
+
+On commence les problèmes de classification par un cas simple : étant données les évaluations qu’un film a eu sur MovieLens et TMDb, peut-on savoir s’il appartient à un genre en particulier ? On choisit ici le genre « drame » car il est très bien représenté dans le dataset movies, avec environ 50\% des films classifiés dans ce genre. En ne gardant que les 8434 films de la base de données ayant plus de 100 votes d'utilisateurs, les \emph{accuracies} obtenues par différentes méthodes ont été :
+
+\medskip
+
+\begin{tabular}{@{} >{\raggedright} m{0.5\columnwidth} @{\hspace*{0.05\columnwidth}} m{0.25\columnwidth} @{\hspace*{0.05\columnwidth}} m{0.15\columnwidth} @{}}
+\toprule
+Classifieur & Apprent. & Test \tabularnewline
+\toprule
+Perceptron par gradient stochastique & 64\% & 65\% \tabularnewline
+\midrule
+Perceptron par gradient stochastique kernelisé & 64\% & 64\% \tabularnewline
+\midrule
+$k$ plus proches voisins ($k = 5$) & 73\% & 60\% \tabularnewline
+\midrule
+Arbre de décision simple & 64\% & 65\% \tabularnewline
+\midrule
+Arbre de décision par bagging & 65\% & 64\% \tabularnewline
+\emph{Évaluation par OOB} & 65\% & \tabularnewline
+\bottomrule
+\end{tabular}
+
+\medskip
+
+Ces résultats sont meilleurs que ceux obtenus avec une classification par classe majoritaire. Cela, cependant, dépend du genre considéré.
+
+On a aussi testé la classification multi-genres à l'aide d'un perceptron par gradient stochastique pour chaque genre et une combinaison des résultats par la méthode un-contre-tous. Cela a donné des \emph{accuracies} de 63\% en apprentissage et 61\% pour le test.
+
+\bigskip
+
+\includegraphics[width=\columnwidth]{regressionTest}
+
+\columnbreak
+
+\begin{tcolorbox}[colback=blue!10, colframe=blue!75!black]
+\centering\Large
+Catégorisation non-supervisée
+\end{tcolorbox}
+
+On a décidé de catégoriser les films d’un même acteur. Cela a été fait dans un premier moment pour les films de Gérard Depardieu en utilisant la méthode des $k$-moyennes. On a utilisé plusieurs valeurs de $k$ et évalué chacun d'entre eux par la méthode de Dunn pour choisir la meilleure valeur, qui est $k = 6$.
+
+\includegraphics[width=\columnwidth]{kmoyennes2}
+
+Avec une projection 2D par la méthode Isomap, on obtient le graphe suivant représentant les classes avec $k = 6$ (les points en noir représentent les centroïdes)~:
+
+\includegraphics[width=\columnwidth]{kmoyennes2D}
+
+On a aussi catégorisé les films de Jackie Chan à l'aide de la méthode de clustering hiérarchique. Le dendrogramme résultat est le suivant~:
+
+\includegraphics[width=\columnwidth]{dendrogramme}
+
+Le cluster le plus grand, représenté en magenta sur le dendrogramme, contient 53 films, tous d’action, genre par lequel Jackie Chan est connu. Ce sont les films où Jackie Chan est l’un des acteurs principaux. La sortie de ces films a été dans une plage de 20 ans autour de 1987, ce qui correspond à la plage d’années où il était très actif. La majorité de ces films n’est pas en anglais mais il y a un grand mélange avec d’autres langues.
+
+\end{multicols}
+
+\end{minipage}
+}
+\end{center}
+\end{document}
